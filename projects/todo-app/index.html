@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern To-Do List Application</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .task-item {
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .task-item.completed {
+            opacity: 0.6;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .checkbox-custom {
+            accent-color: #667eea;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-low {
+            background: #dcfce7;
+            color: #15803d;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 fade-in">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="gradient-bg p-4 rounded-full">
+                        <i data-lucide="check-circle-2" class="w-8 h-8 text-white"></i>
+                    </div>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">TaskFlow</h1>
+                <p class="text-gray-600">Modern To-Do List with Local Storage</p>
+                <div class="mt-4 flex justify-center space-x-4 text-sm">
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="database" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Local Storage</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="zap" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Real-time Sync</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i data-lucide="filter" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Smart Filtering</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 fade-in">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm mb-1">Total Tasks</p>
+                            <p class="text-3xl font-bold text-gray-900" id="stat-total">0</p>
+                        </div>
+                        <div class="gradient-bg p-3 rounded-lg">
+                            <i data-lucide="list" class="w-6 h-6 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm mb-1">Completed</p>
+                            <p class="text-3xl font-bold text-green-600" id="stat-completed">0</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm mb-1">Remaining</p>
+                            <p class="text-3xl font-bold text-orange-600" id="stat-remaining">0</p>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-lg">
+                            <i data-lucide="clock" class="w-6 h-6 text-orange-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 slide-in">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-600"></i>
+                    Add New Task
+                </h2>
+                <form id="task-form" class="space-y-4">
+                    <div>
+                        <input 
+                            type="text" 
+                            id="task-input" 
+                            placeholder="What needs to be done?" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                            required
+                        >
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                            <select 
+                                id="task-priority" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition bg-white"
+                            >
+                                <option value="low">Low Priority</option>
+                                <option value="medium" selected>Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                            <input 
+                                type="date" 
+                                id="task-date" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                            >
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="task-category" 
+                            placeholder="e.g., Work, Personal, Shopping"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                        >
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="w-full btn-primary text-white py-3 rounded-lg font-semibold flex items-center justify-center space-x-2"
+                    >
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Add Task</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button 
+                            onclick="filterTasks('all')" 
+                            id="filter-all"
+                            class="px-4 py-2 rounded-full text-sm font-semibold bg-indigo-600 text-white transition-all hover:shadow-lg"
+                        >
+                            All
+                        </button>
+                        <button 
+                            onclick="filterTasks('active')" 
+                            id="filter-active"
+                            class="px-4 py-2 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all"
+                        >
+                            Active
+                        </button>
+                        <button 
+                            onclick="filterTasks('completed')" 
+                            id="filter-completed"
+                            class="px-4 py-2 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all"
+                        >
+                            Completed
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <select 
+                            id="sort-select" 
+                            onchange="sortTasks(this.value)"
+                            class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        >
+                            <option value="date-newest">Newest First</option>
+                            <option value="date-oldest">Oldest First</option>
+                            <option value="priority-high">High Priority</option>
+                            <option value="priority-low">Low Priority</option>
+                        </select>
+                        <button 
+                            onclick="clearCompleted()" 
+                            class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition flex items-center space-x-1"
+                        >
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>Clear</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks List -->
+            <div id="tasks-container" class="space-y-3">
+                <!-- Tasks will be inserted here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-12 fade-in">
+                <div class="mb-4">
+                    <i data-lucide="inbox" class="w-16 h-16 text-gray-300 mx-auto"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No tasks yet</h3>
+                <p class="text-gray-500">Create your first task to get started!</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-12 text-gray-500 text-sm">
+                <p>✨ Your tasks are saved automatically using browser's Local Storage</p>
+                <p class="mt-2">Built with HTML, CSS, JavaScript & Tailwind CSS</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Data Management
+        const STORAGE_KEY = 'taskflow_tasks';
+        let currentFilter = 'all';
+        let tasks = [];
+
+        // Initialize
+        function init() {
+            loadTasks();
+            renderTasks();
+            updateStats();
+            setupEventListeners();
+        }
+
+        // Load tasks from localStorage
+        function loadTasks() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            tasks = saved ? JSON.parse(saved) : [];
+        }
+
+        // Save tasks to localStorage
+        function saveTasks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('task-form').addEventListener('submit', addTask);
+        }
+
+        // Add task
+        function addTask(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('task-input');
+            const priority = document.getElementById('task-priority').value;
+            const date = document.getElementById('task-date').value;
+            const category = document.getElementById('task-category').value;
+            
+            if (!input.value.trim()) return;
+            
+            const task = {
+                id: Date.now(),
+                text: input.value.trim(),
+                priority: priority,
+                date: date || null,
+                category: category || null,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            tasks.push(task);
+            saveTasks();
+            renderTasks();
+            updateStats();
+            
+            // Reset form
+            input.value = '';
+            document.getElementById('task-priority').value = 'medium';
+            document.getElementById('task-date').value = '';
+            document.getElementById('task-category').value = '';
+            
+            input.focus();
+        }
+
+        // Delete task
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+            updateStats();
+        }
+
+        // Toggle task completion
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        // Filter tasks
+        function filterTasks(filter) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            document.getElementById(`filter-${filter}`).classList.add('bg-indigo-600', 'text-white');
+            document.getElementById(`filter-${filter}`).classList.remove('bg-gray-200', 'text-gray-700');
+            
+            renderTasks();
+        }
+
+        // Sort tasks
+        function sortTasks(sortBy) {
+            let sorted = [...tasks];
+            
+            switch(sortBy) {
+                case 'date-newest':
+                    sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'date-oldest':
+                    sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    break;
+                case 'priority-high':
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    sorted.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+                    break;
+                case 'priority-low':
+                    const priorityOrderLow = { high: 1, medium: 2, low: 3 };
+                    sorted.sort((a, b) => priorityOrderLow[b.priority] - priorityOrderLow[a.priority]);
+                    break;
+            }
+            
+            tasks = sorted;
+            saveTasks();
+            renderTasks();
+        }
+
+        // Clear completed tasks
+        function clearCompleted() {
+            if (confirm('Delete all completed tasks?')) {
+                tasks = tasks.filter(t => !t.completed);
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        // Render tasks
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            let filtered = tasks;
+            if (currentFilter === 'active') {
+                filtered = tasks.filter(t => !t.completed);
+            } else if (currentFilter === 'completed') {
+                filtered = tasks.filter(t => t.completed);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            container.innerHTML = filtered.map(task => `
+                <div class="task-item bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition ${task.completed ? 'completed' : ''}">
+                    <div class="flex items-start gap-4">
+                        <input 
+                            type="checkbox" 
+                            ${task.completed ? 'checked' : ''} 
+                            onchange="toggleTask(${task.id})"
+                            class="checkbox-custom w-5 h-5 mt-1 cursor-pointer"
+                        >
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-2">
+                                <p class="text-gray-900 font-medium ${task.completed ? 'line-through text-gray-500' : ''} break-words">
+                                    ${escapeHtml(task.text)}
+                                </p>
+                                <button 
+                                    onclick="deleteTask(${task.id})"
+                                    class="ml-2 text-gray-400 hover:text-red-600 transition flex-shrink-0"
+                                >
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <span class="badge ${getPriorityClass(task.priority)}">
+                                    ${capitalizeFirst(task.priority)} Priority
+                                </span>
+                                ${task.category ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">${escapeHtml(task.category)}</span>` : ''}
+                                ${task.date ? `<span class="text-xs text-gray-600 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${formatDate(task.date)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const remaining = total - completed;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-completed').textContent = completed;
+            document.getElementById('stat-remaining').textContent = remaining;
+        }
+
+        // Utility functions
+        function getPriorityClass(priority) {
+            switch(priority) {
+                case 'high': return 'badge-high';
+                case 'low': return 'badge-low';
+                default: return 'badge-medium';
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
